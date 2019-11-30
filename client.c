@@ -95,7 +95,7 @@ void do_admin_query(int sockfd,MSG *msg)
 				recv(sockfd,msg->recvmsg,sizeof(msg->recvmsg),0);
 				printf("%s\n",msg->recvmsg);
 				printf("====================================================================\n");
-				send(sockfd,msg->recvmsg,sizeof(msg->recvmsg),0);
+				send(sockfd,msg->recvmsg,sizeof(msg->recvmsg),0); //告诉服务器可以继续发送
 				memset(msg->recvmsg,0,sizeof(msg->recvmsg));
 			}
 			break;
@@ -380,53 +380,44 @@ void do_user_modification(int sockfd,MSG *msg)
 	//printf("------------%s-----------%d.\n",__func__,__LINE__);
 	msg->usertype = USER;
 	msg->msgtype = USER_MODIFY;
-	send(sockfd,msg,sizeof(msg),0);
-	printf("请确认您的姓名:");
-	scanf("%s",msg->info.name);
-	send(sockfd,msg->info.name,sizeof(msg->info.name),0);
-	recv(sockfd,msg->recvmsg,sizeof(msg->recvmsg),0);
-	if(strcmp(msg->recvmsg,"OK") == 0){
-		printf("*************************************************************\n");
-		printf("************* 1：家庭住址 2：电话 3：密码 4：退出************\n");
-		printf("*************************************************************\n");
-		printf("请输入需要修改的信息:");
-		scanf("%d",&n);
-		switch(n)
-		{
-			case 1:
-				msg->flags = 1;
-				printf("请输入修改后的地址:");
-				scanf("%s",msg->info.addr);
-				break;
-			case 2:
-				msg->flags = 2;
-				printf("请输入修改后的电话:");
-				scanf("%s",msg->info.phone);
-				break;
-			case 3:
-				msg->flags = 3;
-				printf("请输入修改后的密码:");
-				scanf("%s",msg->info.passwd);
-				break;
-			case 4:
-				msg->flags = 4;
-				user_menu(sockfd,msg);
-				break;
-			default:
-				printf("您输入有误，请重新输入\n");
-				break;
-		}
-		send(sockfd, msg, sizeof(MSG), 0);
-		recv(sockfd, msg, sizeof(MSG), 0);
-		printf("msg->recvmsg :%s\n",msg->recvmsg);
-		if(strncmp(msg->recvmsg, "OK", 2) == 0)
-		{
-			printf("修改已生效!\n");
-		}else{
-			printf("修改失败！请重试!\n");
-		}
+	printf("*************************************************************\n");
+	printf("************* 1：家庭住址 2：电话 3：密码 4：退出************\n");
+	printf("*************************************************************\n");
+	printf("请输入需要修改的信息:");
+	scanf("%d",&n);
+	switch(n)
+	{
+		case 1:
+			msg->flags = 1;
+			printf("请输入修改后的地址:");
+			scanf("%s",msg->info.addr);
+			break;
+		case 2:
+			msg->flags = 2;
+			printf("请输入修改后的电话:");
+			scanf("%s",msg->info.phone);
+			break;
+		case 3:
+			msg->flags = 3;
+			printf("请输入修改后的密码:");
+			scanf("%s",msg->info.passwd);
+			break;
+		case 4:
+			msg->flags = 4;
+			user_menu(sockfd,msg);
+			break;
+		default:
+			printf("您输入有误，请重新输入\n");
+			break;
+	}
+	send(sockfd, msg, sizeof(MSG), 0);
+	recv(sockfd, msg->recvmsg, sizeof(msg->recvmsg), 0);
+	printf("msg->recvmsg :%s\n",msg->recvmsg);
+	if(strncmp(msg->recvmsg, "OK", 2) == 0)
+	{
+		printf("修改已生效!\n");
 	}else{
-		printf("姓名不符！请重试!\n");
+		printf("修改失败！请重试!\n");
 	}
 }
 

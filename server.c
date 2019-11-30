@@ -96,65 +96,57 @@ int process_user_modify_request(int acceptfd,MSG *msg)
 	printf("------------%s-----------%d.\n",__func__,__LINE__);
 	memset(msg->recvmsg,0,sizeof(msg->recvmsg));
 	memset(msg->info.name,0,sizeof(msg->info.name));
-	recv(acceptfd,msg->info.name,sizeof(msg->info.name),0);
-	if(strcmp(msg->username,msg->info.name) == 0)
+	strcpy(msg->info.name,msg->username);
+	switch (msg->flags)
 	{
-		strcpy(msg->recvmsg,"OK");
-		send(acceptfd,msg->recvmsg,sizeof(msg->recvmsg),0);
-		switch (msg->flags)
-		{
-			case 1:
-				//拼接sql语句为修改地址信息，以工号为修改条件
-				sprintf(sql,"update usrinfo set addr='%s' where staffno=%d;",msg->info.addr,msg->info.no);
-				printf("msg->info.addr = %s\n",msg->info.addr);	      //检测有没有传入修改信息！！！
-				printf("msg->info.no = %d\n",msg->info.no);
-				if(sqlite3_get_table(db,sql,&result,&nrow,&ncolumn,&errmsg) != SQLITE_OK){
-					printf("---****----%s.\n",errmsg);
-				}else {
-					printf("已修改！\n");  				//检测有没有修改成功！！！
-					char *word = "修改地址信息";
-					strcpy(msg->recvmsg,"OK");
-					send(acceptfd,msg,sizeof(MSG),0);
-					insert_history(acceptfd,msg,word);
-				}
-				break;
-			case 2:
-				//拼接sql语句为修改电话信息，以工号为修改条件
-				sprintf(sql,"update usrinfo set phone='%s' where staffno=%d;",msg->info.phone,msg->info.no);
-				printf("msg->info.phone = %s\n",msg->info.phone);	      //检测有没有传入修改信息！！！
-				if(sqlite3_get_table(db,sql,&result,&nrow,&ncolumn,&errmsg) != SQLITE_OK){
-					printf("---****----%s.\n",errmsg);
-				}else {
-					printf("已修改！\n");                       //检测有没有修改成功！！！
-					char *word = "修改电话信息";
-					strcpy(msg->recvmsg,"OK");
-					send(acceptfd,msg,sizeof(MSG),0);
-					insert_history(acceptfd,msg,word);
-				}
-				break;
-			case 3:
-				//拼接sql语句为修改密码信息，以工号为修改条件
-				sprintf(sql,"update usrinfo set passwd='%s' where staffno=%d;",msg->info.passwd,msg->info.no);
-				printf("msg->info.passwd = %s\n",msg->info.passwd);	      //检测有没有传入修改信息！！！
-				if(sqlite3_get_table(db,sql,&result,&nrow,&ncolumn,&errmsg) != SQLITE_OK){
-					printf("---****----%s.\n",errmsg);
-				}else {
-					printf("已修改！\n");                       //检测有没有修改成功！！！
-					char *word = "修改密码信息";
-					strcpy(msg->recvmsg,"OK");
-					send(acceptfd,msg,sizeof(MSG),0);
-					insert_history(acceptfd,msg,word);
-				}
-				break;
-			case 4:
-				process_client_request(acceptfd,msg);
-				break;
-			default:
-				break;
-		}
-	}else{
-		strcpy(msg->recvmsg,"NO");
-		send(acceptfd,msg->recvmsg,sizeof(msg->recvmsg),0);
+		case 1:
+			//拼接sql语句为修改地址信息，以工号为修改条件
+			sprintf(sql,"update usrinfo set addr='%s' where name='%s';",msg->info.addr,msg->info.name);
+			printf("msg->info.addr = %s\n",msg->info.addr);	      //检测有没有传入修改信息！！！
+			printf("msg->info.no = %d\n",msg->info.no);
+			if(sqlite3_get_table(db,sql,&result,&nrow,&ncolumn,&errmsg) != SQLITE_OK){
+				printf("---****----%s.\n",errmsg);
+			}else {
+				printf("已修改！\n");  				//检测有没有修改成功！！！
+				char *word = "修改地址信息";
+				strcpy(msg->recvmsg,"OK");
+				send(acceptfd,msg->recvmsg,sizeof(msg->recvmsg),0);
+				insert_history(acceptfd,msg,word);
+			}
+			break;
+		case 2:
+			//拼接sql语句为修改电话信息，以工号为修改条件
+			sprintf(sql,"update usrinfo set phone='%s' where name='%s';",msg->info.phone,msg->info.name);
+			printf("msg->info.phone = %s\n",msg->info.phone);	      //检测有没有传入修改信息！！！
+			if(sqlite3_get_table(db,sql,&result,&nrow,&ncolumn,&errmsg) != SQLITE_OK){
+				printf("---****----%s.\n",errmsg);
+			}else {
+				printf("已修改！\n");                       //检测有没有修改成功！！！
+				char *word = "修改电话信息";
+				strcpy(msg->recvmsg,"OK");
+				send(acceptfd,msg->recvmsg,sizeof(msg->recvmsg),0);
+				insert_history(acceptfd,msg,word);
+			}
+			break;
+		case 3:
+			//拼接sql语句为修改密码信息，以工号为修改条件
+			sprintf(sql,"update usrinfo set passwd='%s' where name='%s';",msg->info.passwd,msg->info.name);
+			printf("msg->info.passwd = %s\n",msg->info.passwd);	      //检测有没有传入修改信息！！！
+			if(sqlite3_get_table(db,sql,&result,&nrow,&ncolumn,&errmsg) != SQLITE_OK){
+				printf("---****----%s.\n",errmsg);
+			}else {
+				printf("已修改！\n");                       //检测有没有修改成功！！！
+				char *word = "修改密码信息";
+				strcpy(msg->recvmsg,"OK");
+				send(acceptfd,msg->recvmsg,sizeof(msg->recvmsg),0);
+				insert_history(acceptfd,msg,word);
+			}
+			break;
+		case 4:
+			process_client_request(acceptfd,msg);
+			break;
+		default:
+			break;
 	}
 }
 
@@ -588,11 +580,6 @@ int main(int argc, const char *argv[])
 	int nfds = sockfd;
 	int retval;
 	int i = 0;
-
-#if 0 //添加线程控制部分
-	pthread_t thread[N];
-	int tid = 0;
-#endif
 
 	while(1){
 		tempfds = readfds;
